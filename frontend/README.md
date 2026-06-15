@@ -13,7 +13,21 @@ Portal público de la plataforma de bienes raíces de Galdámez S.A. de C.V. Con
 
 ---
 
-## Setup local
+## Setup con Docker (recomendado)
+
+Desde la raíz del monorepo:
+
+```bash
+docker compose up --build
+```
+
+El contenedor corre `vite dev` con `--host 0.0.0.0` para ser accesible desde el host. Los directorios `src/` y `public/` se montan como volúmenes, por lo que los cambios en el código se reflejan con hot reload sin reconstruir la imagen.
+
+Portal disponible en: **http://localhost:5173**
+
+---
+
+## Setup local (sin Docker)
 
 ```bash
 # 1. Instalar dependencias
@@ -34,9 +48,11 @@ El portal estará disponible en: **http://localhost:5173**
 
 ## Variables de entorno
 
-| Variable | Descripción | Default |
+| Variable | Descripción | Valor por defecto |
 |---|---|---|
 | `VITE_API_URL` | URL base de la API Laravel sin trailing slash | `http://localhost:8000/api` |
+
+> En Docker, esta variable se inyecta desde `docker-compose.yml`. En local, se configura en `frontend/.env`.
 
 ---
 
@@ -57,7 +73,7 @@ El portal estará disponible en: **http://localhost:5173**
 ```
 src/
 ├── services/          # Funciones Axios puras (sin estado)
-│   ├── api.js         # Instancia base de Axios con baseURL
+│   ├── api.js         # Instancia base de Axios con baseURL desde VITE_API_URL
 │   ├── inmuebles.js   # getInmuebles(), getInmueble(), getCategorias()
 │   └── mensajes.js    # enviarMensaje()
 ├── hooks/             # Lógica de estado reutilizable (sin JSX)
@@ -66,8 +82,8 @@ src/
 │   └── ThemeContext.jsx  # Dark/light mode con localStorage
 ├── components/
 │   ├── layout/        # Navbar, Footer
-│   ├── sections/      # Secciones de página (Hero, Mapa, etc.)
-│   └── ui/            # Componentes presentacionales (InmuebleCard, etc.)
+│   ├── sections/      # Secciones autónomas de página
+│   └── ui/            # Componentes presentacionales (InmuebleCard, ContactForm)
 └── views/             # Páginas — orquestan secciones
     ├── Home/
     ├── Propiedades/
@@ -93,7 +109,7 @@ Color de acento: **amber**.
 | `PorQueElegirnosSection` | 3 tarjetas de propuesta de valor |
 | `QuienesSomosSection` | Descripción de la empresa |
 | `PropiedadesDestacadasSection` | Grid de 6 inmuebles desde la API |
-| `MapaContactoSection` | Formulario + iframe Google Maps |
+| `MapaContactoSection` | Formulario de contacto + iframe Google Maps |
 
 ---
 
@@ -106,11 +122,41 @@ Color de acento: **amber**.
 
 ---
 
+## Docker — detalles del contenedor
+
+```
+frontend/
+└── Dockerfile    # Node 20 Alpine · instala deps · corre vite dev --host 0.0.0.0
+```
+
+**Hot reload en Docker:** los volúmenes montados en `docker-compose.yml` sincronizan `src/` y `public/` del host al contenedor en tiempo real. Los cambios en código fuente se reflejan instantáneamente sin reconstruir la imagen.
+
+```yaml
+# En docker-compose.yml
+volumes:
+  - ./frontend/src:/app/src       # ← hot reload
+  - ./frontend/public:/app/public
+  - /app/node_modules             # ← usa los del build, no del host
+```
+
+**Vite config para Docker** (`vite.config.js`):
+```js
+server: {
+  host: '0.0.0.0',   // escucha en todas las interfaces
+  port: 5173,
+}
+```
+
+---
+
 ## Tests
 
 ```bash
 npm run test        # Modo watch (desarrollo)
 npm run test:run    # Una sola ejecución (CI)
+
+# Con Docker:
+docker compose exec frontend npm run test:run
 ```
 
 - **38 tests** con Vitest + Testing Library.
@@ -125,6 +171,8 @@ npm run test:run    # Una sola ejecución (CI)
 npm run build       # Genera dist/
 npm run preview     # Preview del build en local
 ```
+
+> Para producción con Docker, el `Dockerfile` puede modificarse para usar un build multi-stage: `node:20-alpine` para compilar y `nginx:alpine` para servir el `dist/` resultante.
 
 ---
 
