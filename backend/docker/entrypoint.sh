@@ -15,7 +15,7 @@ fi
 echo "[INFO] Esperando conexión a MySQL (host: $DB_HOST, puerto: $DB_PORT)..."
 MAX_TRIES=30
 COUNT=0
-until php artisan db:show > /dev/null 2>&1; do
+until php -r "exit(@fsockopen('${DB_HOST}', ${DB_PORT}, \$e, \$s, 2) ? 0 : 1);" > /dev/null 2>&1; do
     COUNT=$((COUNT + 1))
     if [ "$COUNT" -ge "$MAX_TRIES" ]; then
         echo "[ERROR] No se pudo conectar a MySQL después de $MAX_TRIES intentos. Abortando."

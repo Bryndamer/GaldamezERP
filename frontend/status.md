@@ -1,8 +1,9 @@
 # Frontend — Estado de Avance
 
-**Última actualización:** 2026-05-29
+**Última actualización:** 2026-06-15
 **Stack instalado:** React 19.2 + Vite 8 + Tailwind CSS v3 + React Router DOM v7 + Axios + lucide-react
 **Servidor local:** `npm run dev` → http://localhost:5173
+**Docker:** `docker compose up --build` → http://localhost:5173 (Yarn dentro del contenedor)
 **Build verificado:** ✓ sin errores
 **Tests:** ✓ 38/38 Vitest — `npm run test:run`
 
@@ -151,12 +152,50 @@ VITE_API_URL=http://localhost:8000/api
 ## Comandos de Desarrollo
 
 ```bash
+# ─── Local (npm) ──────────────────────────────────────────────────────
 npm run dev        # servidor de desarrollo (puerto 5173)
 npm run build      # build de producción
 npm run preview    # previsualizar build localmente
 npm run test       # tests en modo watch
 npm run test:run   # tests una sola vez (CI)
+
+# ─── Con Docker ───────────────────────────────────────────────────────
+docker compose up --build               # primera vez
+docker compose up                       # inicios siguientes
+docker compose logs -f frontend         # ver logs del servidor Vite
 ```
+
+---
+
+---
+
+### Docker — Configuración del Contenedor ✅ (2026-06-15)
+
+**Archivo:** `frontend/Dockerfile`
+
+**Stack de build:** `node:20-alpine` con Yarn (incluido en la imagen base, sin instalación adicional).
+
+| Instrucción | Detalle |
+|---|---|
+| `COPY package.json yarn.lock* ./` | Copia manifesto y lockfile (glob `*` = opcional) |
+| `RUN yarn install` | Instala dependencias; genera `yarn.lock` si no existe |
+| `COPY . .` | Código fuente con hot-reload vía volumen Docker |
+| `CMD ["yarn", "dev", "--host", "0.0.0.0", "--port", "5173"]` | Vite dev server expuesto en todas las interfaces |
+
+**Volumen para hot-reload** (en `docker-compose.yml`):
+```yaml
+volumes:
+  - ./frontend/src:/app/src
+  - ./frontend/public:/app/public
+  - /app/node_modules      # excluye node_modules del host
+```
+
+**Archivo `frontend/.env`** creado desde `.env.example`:
+```env
+VITE_API_URL=http://localhost:8000/api
+```
+
+> Las peticiones HTTP las hace el **navegador** desde el host (no desde dentro de Docker), por eso la URL usa `localhost:8000` y no el nombre del servicio `backend:8000`.
 
 ---
 

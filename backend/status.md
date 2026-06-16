@@ -1,6 +1,6 @@
 # Backend — Estado de Avance
 
-**Última actualización:** 2026-06-15
+**Última actualización:** 2026-06-15 (correcciones Docker en PC nueva)
 **Versión Laravel:** 12.12.2 (PHP 8.2)
 **Base de datos:** MySQL — `GaldamezERP` (puerto 3309 en local con Docker)
 **Servidor local:** `php artisan serve` → http://localhost:8000
@@ -289,11 +289,11 @@ Los correos ahora se envían de forma síncrona. Errores SMTP son inmediatamente
 
 | Archivo | Descripción |
 |---|---|
-| `backend/Dockerfile` | PHP 8.2-FPM Alpine + Nginx + Supervisor + Node 20 + Composer |
+| `backend/Dockerfile` | Multi-stage: Stage 1 node:20-alpine (Vite build) → Stage 2 PHP 8.2-FPM Alpine + Nginx + Supervisor + Composer |
 | `backend/docker/nginx.conf` | Puerto 8000, proxy FastCGI a 127.0.0.1:9000, `client_max_body_size 20M` |
 | `backend/docker/supervisord.conf` | Corre `php-fpm` y `nginx` simultáneamente, logs a stdout/stderr |
 | `backend/docker/entrypoint.sh` | Espera MySQL (30 reintentos × 3s) → genera APP_KEY si falta → migrate → storage:link → supervisord |
-| `frontend/Dockerfile` | Node 20 Alpine, `npm ci`, `vite dev --host 0.0.0.0 --port 5173` |
+| `frontend/Dockerfile` | Node 20 Alpine, `yarn install`, `vite dev --host 0.0.0.0 --port 5173` |
 | `docker-compose.yml` (raíz) | Orquesta mysql + backend + frontend en red `galdamez_network` |
 
 **Puertos expuestos al host:**
@@ -317,6 +317,98 @@ docker compose exec backend php artisan demodata       # Datos de prueba
 docker compose exec backend php artisan email:test     # Diagnóstico SMTP
 docker compose down -v                                 # Destruir todo (incluye BD)
 ```
+
+---
+
+### Correcciones Docker al clonar en PC nueva ✅ (2026-06-15)
+
+Serie de fixes aplicados al configurar el proyecto en una PC nueva sin PHP/Node local.
+
+#### Fix 1 — Dockerfile: multi-stage build
+
+**Problema:** `apk add nodejs npm` fallaba con exit code 3 en `php:8.2-fpm-alpine` (Alpine 3.21). El paquete `npm` en Alpine 3.21 causa conflicto de resolución con `nodejs`.
+
+**Solución:** Convertido a multi-stage build. Node.js ya no se instala vía apk.
+
+| Stage | Base | Responsabilidad |
+|---|---|---|
+| `node_builder` | `node:20-alpine` | `yarn install` + `yarn build` → assets Vite en `/build/public/build/` |
+| `stage-1` (final) | `php:8.2-fpm-alpine` | PHP runtime, Composer, Nginx, Supervisor. Copia assets del stage anterior |
+
+```dockerfile
+COPY --from=node_builder /build/public/build /var/www/public/build
+```
+
+También corregido bug en línea original: `COPY vite.config.js resources/ ./vite.config.js ./` → separado en dos instrucciones correctas.
+
+---
+
+#### Fix 2 — Dockerfiles: npm → Yarn
+
+**Problema:** `npm ci` requiere `package-lock.json`. El repositorio no tiene lockfile de npm.
+
+**Solución:** Ambos Dockerfiles cambiados a Yarn (incluido en `node:20-alpine` sin instalación adicional).
+
+| Archivo | Cambio |
+|---|---|
+| `backend/Dockerfile` (stage node_builder) | `COPY package.json yarn.lock* ./` + `RUN yarn install` + `RUN yarn build` |
+| `frontend/Dockerfile` | `COPY package.json yarn.lock* ./` + `RUN yarn install` + `CMD ["yarn", "dev", ...]` |
+
+> El glob `yarn.lock*` hace el lockfile opcional: si no existe, yarn lo genera; si existe, lo usa.
+
+---
+
+#### Fix 3 — composer.json: faker movido a `require`
+
+**Problema:** `fakerphp/faker` estaba en `require-dev`. El Dockerfile instala con `--no-dev`, así que faker no estaba disponible en el contenedor. En Laravel 12, `fake()` solo se define si `\Faker\Generator` existe → `Call to undefined function Database\Factories\fake()` al correr `demodata`.
+
+**Solución:** Movido a `require` (dependencia de producción).
+
+```json
+"require": {
+    "fakerphp/faker": "^1.23",
+    ...
+}
+```
+
+Afecta a: `UserFactory`, `CategoryFactory`, `InmuebleFactory`, `MensajeFactory`.
+
+---
+
+#### Fix 4 — Dockerfile: `composer install` → `composer update`
+
+**Problema:** Al mover faker manualmente en `composer.json` sin actualizar `composer.lock`, `composer install` rechaza instalar con exit code 4 (`lock file not up to date`).
+
+**Solución:** Cambiado a `composer update` en el Dockerfile. Resuelve el desajuste durante el build y no requiere `composer.lock` sincronizado en el host.
+
+> Para volver a `composer install` en el futuro: extraer el lockfile actualizado del contenedor con `docker compose cp backend:/var/www/composer.lock ./backend/composer.lock`.
+
+---
+
+#### Fix 5 — entrypoint.sh: MySQL wait loop
+
+**Problema:** El loop usaba `php artisan db:show` para verificar disponibilidad de MySQL. Este comando arranca la aplicación Laravel completa, que intenta inicializar `CACHE_STORE=database` y `SESSION_DRIVER=database`. Las tablas `cache` y `sessions` no existen aún (las migraciones corren después del loop), por lo que el comando siempre fallaba con exit ≠ 0, aunque MySQL estuviera activo y la BD existiera.
+
+**Solución:** Cambiado a check TCP directo con PHP puro, sin arrancar Laravel:
+
+```sh
+# Antes (fallaba aunque MySQL estuviera activo):
+until php artisan db:show > /dev/null 2>&1; do
+
+# Después (solo verifica TCP 3306, sin necesitar tablas):
+until php -r "exit(@fsockopen('${DB_HOST}', ${DB_PORT}, \$e, \$s, 2) ? 0 : 1);" > /dev/null 2>&1; do
+```
+
+---
+
+#### Archivos `.env` creados
+
+| Archivo | Descripción |
+|---|---|
+| `backend/.env` | Creado desde `.env.example`. DB: `127.0.0.1:3309/GaldamezERP/root`. Mail: `noreply@bienesraicescentroamerica.com` con App Password configurada. |
+| `frontend/.env` | `VITE_API_URL=http://localhost:8000/api` |
+
+> En Docker, las variables `DB_*` del `backend/.env` son sobreescritas por el bloque `environment:` del `docker-compose.yml` (`DB_HOST=mysql`, `DB_PORT=3306`). El `.env` sirve para conexiones locales (fuera de Docker, desde el host).
 
 ---
 

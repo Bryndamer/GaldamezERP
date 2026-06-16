@@ -1,11 +1,19 @@
+# ─── Stage 1: Compilar assets Vite ──────────────────────────────────────────
+FROM node:20-alpine AS node_builder
+WORKDIR /build
+COPY package.json yarn.lock* ./
+RUN yarn install
+COPY vite.config.js ./
+COPY resources/ resources/
+RUN yarn build
+
+# ─── Stage 2: PHP runtime ────────────────────────────────────────────────────
 FROM php:8.2-fpm-alpine
 
 # ─── Dependencias del sistema ────────────────────────────────────────────────
 RUN apk add --no-cache \
     nginx \
     supervisor \
-    nodejs \
-    npm \
     git \
     curl \
     unzip \
@@ -33,17 +41,13 @@ WORKDIR /var/www
 
 # ─── Dependencias PHP (capa cacheada) ────────────────────────────────────────
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
-
-# ─── Dependencias Node + build de assets Blade ───────────────────────────────
-COPY package.json package-lock.json* ./
-RUN npm ci --prefer-offline
-COPY vite.config.js resources/ ./vite.config.js ./
-COPY resources/ resources/
-RUN npm run build
+RUN composer update --no-dev --optimize-autoloader --no-scripts --no-interaction
 
 # ─── Código de la aplicación ─────────────────────────────────────────────────
 COPY . .
+
+# ─── Assets compilados por Stage 1 ───────────────────────────────────────────
+COPY --from=node_builder /build/public/build /var/www/public/build
 
 # ─── Post-install de Composer ────────────────────────────────────────────────
 RUN composer run-script post-autoload-dump --no-interaction 2>/dev/null || true
