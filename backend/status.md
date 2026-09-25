@@ -1,6 +1,6 @@
 # Backend — Estado de Avance
 
-**Última actualización:** 2026-06-15 (correcciones Docker en PC nueva)
+**Última actualización:** 2026-09-25 (preparación para despliegue automático)
 **Versión Laravel:** 12.12.2 (PHP 8.2)
 **Base de datos:** MySQL — `GaldamezERP` (puerto 3309 en local con Docker)
 **Servidor local:** `php artisan serve` → http://localhost:8000
@@ -409,6 +409,23 @@ until php -r "exit(@fsockopen('${DB_HOST}', ${DB_PORT}, \$e, \$s, 2) ? 0 : 1);" 
 | `frontend/.env` | `VITE_API_URL=http://localhost:8000/api` |
 
 > En Docker, las variables `DB_*` del `backend/.env` son sobreescritas por el bloque `environment:` del `docker-compose.yml` (`DB_HOST=mysql`, `DB_PORT=3306`). El `.env` sirve para conexiones locales (fuera de Docker, desde el host).
+
+---
+
+### Preparación para despliegue automático ✅ (2026-09-25)
+
+Destino: hosting compartido (hosting.com, Enhance, LiteSpeed, PHP 8.3, sin Docker). Document root = `backend/public`. Deploy por GitHub Actions (rsync + SSH) al hacer push a `main`. Guía operativa: `docs/DEPLOY.md`.
+
+| Archivo | Cambio |
+|---|---|
+| `routes/web.php` | Eliminada redirección `/` → login. Nueva ruta catch-all `spa` (`GET /{any?}`, última ruta) que sirve `public/spa/index.html`; excluye `api`, `admin`, `agente`, `login`, `logout`, `up`, `storage`, `spa`, `build`. 404 si el frontend no está compilado |
+| `routes/console.php` | Scheduler: `queue:work --stop-when-empty --tries=3 --max-time=50` cada minuto, `withoutOverlapping()` (requiere cron `schedule:run`) |
+| `.gitignore` | `/public/spa` (build de Vite, no se versiona) |
+| `.env.example` | Nota de `FRONTEND_URL` en producción |
+| `tests/Feature/ExampleTest.php` | Smoke test ahora usa `GET /login` (sin build, `/` devuelve 404) |
+| `../.rsync-exclude`, `../.github/workflows/deploy.yml`, `../docs/DEPLOY.md` | Nuevos (raíz del repo) |
+
+> Pendiente: `composer.lock` no está sincronizado con `composer.json` (faker movido a `require`, ver Fix 4). `composer install` en CI fallará hasta regenerar el lock (`composer update --lock`) y versionarlo.
 
 ---
 

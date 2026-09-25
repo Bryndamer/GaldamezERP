@@ -67,6 +67,19 @@ Route::middleware(['auth', 'role:agente'])
         Route::get('/dashboard', fn () => view('agente.dashboard'))->name('dashboard');
     });
 
-// ─── Raíz ─────────────────────────────────────────────────────────────────────
+// ─── SPA React (frontend público) ─────────────────────────────────────────────
+// Sirve el build de Vite (public/spa/index.html) para cualquier ruta que no sea
+// del panel admin, la API ni archivos estáticos. Debe ser la ÚLTIMA ruta.
 
-Route::get('/', fn () => redirect()->route('login'));
+Route::get('/{any?}', function () {
+    $index = public_path('spa/index.html');
+
+    abort_unless(file_exists($index), 404, 'Frontend no compilado. Ejecuta el build de Vite.');
+
+    return response()->file($index, [
+        'Content-Type'  => 'text/html; charset=UTF-8',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+    ]);
+})
+    ->where('any', '^(?!api|admin|agente|login|logout|up|storage|spa|build).*$')
+    ->name('spa');

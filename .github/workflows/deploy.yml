@@ -1,0 +1,97 @@
+name: Deploy to hosting.com
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  PHP_VERSION: "8.3"
+  NODE_VERSION: "20"
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Backend (Laravel) ──────────────────────────────────────────────
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, intl, gd, zip, bcmath, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+
+      - name: Composer install (prod)
+        working-directory: backend
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+      # ── Frontend (React/Vite) ──────────────────────────────────────────
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend into backend/public/spa
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          npm ci
+          npx vite build --base=/spa/ --outDir ../backend/public/spa --emptyOutDir
+
+      # ── Upload ─────────────────────────────────────────────────────────
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rsync backend → server
+        run: |
+          rsync -az --delete \
+            --exclude-from=.rsync-exclude \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
+            backend/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/
+
+      # ── Post-deploy ────────────────────────────────────────────────────
+      - name: Artisan post-deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s <<'EOF'
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+            if [ ! -f .env ]; then
+              echo "::warning::No existe .env en el servidor. Créalo y vuelve a ejecutar el workflow."
+              exit 0
+            fi
+            mkdir -p storage/app/public storage/app/private storage/framework/{cache/data,sessions,views,testing} storage/logs bootstrap/cache
+            chmod -R ug+rwX storage bootstrap/cache
+            php artisan storage:link --force
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            php artisan queue:restart
+            echo "Deploy OK — $(php artisan --version)"
+          EOF
