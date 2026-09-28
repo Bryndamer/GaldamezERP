@@ -8,7 +8,7 @@
 <div class="mb-5">
     <label class="block text-sm font-medium text-gray-700 mb-1">Título <span class="text-red-500">*</span></label>
     <input type="text" name="titulo" value="{{ old('titulo', $inmueble->titulo ?? '') }}"
-        class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+        class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                focus:ring-2 focus:ring-blue-500 focus:border-transparent
                {{ $errors->has('titulo') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}"
         placeholder="Ej: Casa moderna en Santa Tecla" maxlength="255">
@@ -19,7 +19,7 @@
 <div class="mb-5">
     <label class="block text-sm font-medium text-gray-700 mb-1">Descripción <span class="text-red-500">*</span></label>
     <textarea name="descripcion" rows="4"
-        class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+        class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                focus:ring-2 focus:ring-blue-500 focus:border-transparent
                {{ $errors->has('descripcion') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}"
         placeholder="Descripción detallada del inmueble..." maxlength="5000">{{ old('descripcion', $inmueble->descripcion ?? '') }}</textarea>
@@ -32,7 +32,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Precio (USD) <span class="text-red-500">*</span></label>
         <input type="number" name="precio" value="{{ old('precio', $inmueble->precio ?? '') }}"
             step="0.01" min="0.01"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('precio') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}"
             placeholder="0.00">
@@ -42,7 +42,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Metraje (m²) <span class="text-red-500">*</span></label>
         <input type="number" name="metraje" value="{{ old('metraje', $inmueble->metraje ?? '') }}"
             step="0.01" min="0.01"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('metraje') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}"
             placeholder="0.00">
@@ -56,7 +56,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Habitaciones <span class="text-red-500">*</span></label>
         <input type="number" name="habitaciones" value="{{ old('habitaciones', $inmueble->habitaciones ?? '') }}"
             min="0" max="99"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('habitaciones') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
         @error('habitaciones')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -65,7 +65,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Baños <span class="text-red-500">*</span></label>
         <input type="number" name="banos" value="{{ old('banos', $inmueble->banos ?? '') }}"
             min="0" max="99"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('banos') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
         @error('banos')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -76,7 +76,7 @@
 <div class="mb-5">
     <label class="block text-sm font-medium text-gray-700 mb-1">Dirección <span class="text-red-500">*</span></label>
     <input type="text" name="direccion" value="{{ old('direccion', $inmueble->direccion ?? '') }}"
-        class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+        class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                focus:ring-2 focus:ring-blue-500 focus:border-transparent
                {{ $errors->has('direccion') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}"
         placeholder="Colonia, municipio, departamento" maxlength="255">
@@ -88,7 +88,7 @@
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo <span class="text-red-500">*</span></label>
         <select name="tipo"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('tipo') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
             <option value="">Seleccionar...</option>
@@ -102,7 +102,7 @@
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Estado <span class="text-red-500">*</span></label>
         <select name="estado"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('estado') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
             <option value="">Seleccionar...</option>
@@ -116,7 +116,7 @@
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Categoría <span class="text-red-500">*</span></label>
         <select name="category_id"
-            class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+            class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
                    {{ $errors->has('category_id') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}">
             <option value="">Seleccionar...</option>
@@ -138,7 +138,7 @@
     <div class="flex flex-wrap gap-3">
         @foreach($inmueble->fotos as $foto)
         <img src="{{ Storage::url($foto) }}" alt="Foto inmueble"
-             class="h-20 w-20 object-cover rounded-lg border border-gray-200 shadow-sm">
+             class="h-20 w-20 object-cover rounded-lg border border-gray-200 shadow-xs">
         @endforeach
     </div>
     <p class="mt-1 text-xs text-gray-500">Para reemplazar las fotos, selecciona nuevas imágenes abajo.</p>

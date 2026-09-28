@@ -13,7 +13,7 @@
     </a>
 </div>
 
-<div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+<div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-600 text-left">
             <tr>
@@ -29,7 +29,7 @@
             <tr class="hover:bg-gray-50 transition-colors {{ $user->id === Auth::id() ? 'bg-blue-50/30' : '' }}">
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-3">
-                        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">
+                        <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">
                             {{ strtoupper(substr($user->name, 0, 1)) }}
                         </div>
                         <div>

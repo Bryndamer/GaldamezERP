@@ -7,13 +7,13 @@
     <h1 class="text-2xl font-bold text-gray-900">Nueva Categoría</h1>
 </div>
 
-<div class="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-8 max-w-lg">
+<div class="bg-white rounded-2xl border border-gray-200 shadow-xs px-8 py-8 max-w-lg">
     <form method="POST" action="{{ route('admin.categorias.store') }}">
         @csrf
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-1">Nombre <span class="text-red-500">*</span></label>
             <input type="text" name="name" value="{{ old('name') }}" autofocus
-                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
                        {{ $errors->has('name') ? 'border-red-400 bg-red-50' : 'border-gray-300' }}"
                 placeholder="Ej: Dúplex">

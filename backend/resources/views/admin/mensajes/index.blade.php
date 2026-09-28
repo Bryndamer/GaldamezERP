@@ -15,7 +15,7 @@
     @endif
 </div>
 
-<div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+<div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-600 text-left">
             <tr>

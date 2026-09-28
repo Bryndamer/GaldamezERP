@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión — Galdámez ERP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center">
 
@@ -15,7 +15,7 @@
             <p class="mt-1 text-sm text-gray-500">Panel Administrativo</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 px-8 py-10">
+        <div class="bg-white rounded-2xl shadow-xs border border-gray-200 px-8 py-10">
 
             <h2 class="text-lg font-semibold text-gray-800 mb-6">Iniciar sesión</h2>
 
@@ -45,7 +45,7 @@
                         value="{{ old('email') }}"
                         autocomplete="email"
                         autofocus
-                        class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                        class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                                focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                {{ $errors->has('email') ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white' }}"
                         placeholder="correo@empresa.com"
@@ -65,7 +65,7 @@
                         type="password"
                         name="password"
                         autocomplete="current-password"
-                        class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                        class="w-full rounded-lg border px-3 py-2 text-sm shadow-xs outline-hidden transition
                                focus:ring-2 focus:ring-blue-500 focus:border-transparent
                                {{ $errors->has('password') ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white' }}"
                         placeholder="••••••••"
@@ -81,7 +81,7 @@
                         id="remember"
                         type="checkbox"
                         name="remember"
-                        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        class="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
                     >
                     <label for="remember" class="ml-2 text-sm text-gray-600">
                         Recordar sesión
@@ -92,7 +92,7 @@
                     type="submit"
                     class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800
                            text-white font-medium text-sm py-2.5 rounded-lg
-                           transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                           transition-colors focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     Ingresar al sistema
                 </button>
 

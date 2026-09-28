@@ -493,6 +493,16 @@ php artisan route:list
 
 ---
 
+## Fase 3 — CSS del panel admin compilado con Vite ✅
+
+- `login.blade.php` y `layouts/admin.blade.php` usan `@vite(['resources/css/app.css', 'resources/js/app.js'])`; eliminados Tailwind Play CDN y Alpine por jsDelivr.
+- `resources/js/app.js` inicia Alpine (`alpinejs` como dependencia npm del backend, `package-lock.json` versionado).
+- Clases Tailwind v3→v4 en vistas del panel: `shadow-sm`→`shadow-xs`, `rounded`→`rounded-sm`, `outline-none`→`outline-hidden`, `flex-shrink-0`→`shrink-0`.
+- Workflow: step "Build backend assets" (`npm ci && npm run build` → `public/build`) antes del build de la SPA.
+- `tests/TestCase.php` llama a `withoutVite()` para que los tests no requieran `public/build`.
+
+---
+
 ## Próximas Fases (Pendientes)
 
 - **Fase 7:** Integración completa React ↔ API ↔ MySQL ↔ Mail (testing E2E)

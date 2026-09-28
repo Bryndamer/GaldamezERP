@@ -17,7 +17,7 @@
 
 <div class="max-w-2xl">
 
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
 
         <div class="px-6 py-5 border-b border-gray-100">
             <h1 class="text-lg font-bold text-gray-900">{{ $plantilla->nombre }}</h1>
@@ -40,7 +40,7 @@
                        value="{{ old('asunto', $plantilla->asunto) }}"
                        maxlength="255"
                        class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                              focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent
                               @error('asunto') border-red-400 bg-red-50 @enderror">
                 @error('asunto')
                     <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
@@ -60,7 +60,7 @@
                        maxlength="255"
                        placeholder="Ej: ¡Gracias por contactarnos, :nombre!"
                        class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                              focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent
                               @error('saludo') border-red-400 bg-red-50 @enderror">
                 @error('saludo')
                     <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
@@ -78,7 +78,7 @@
                           rows="4"
                           maxlength="2000"
                           class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none
+                                 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none
                                  @error('cuerpo_principal') border-red-400 bg-red-50 @enderror">{{ old('cuerpo_principal', $plantilla->cuerpo_principal) }}</textarea>
                 @error('cuerpo_principal')
                     <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
@@ -96,7 +96,7 @@
                           rows="3"
                           maxlength="2000"
                           class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none
+                                 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none
                                  @error('cuerpo_secundario') border-red-400 bg-red-50 @enderror">{{ old('cuerpo_secundario', $plantilla->cuerpo_secundario) }}</textarea>
                 @error('cuerpo_secundario')
                     <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
@@ -115,7 +115,7 @@
                        value="{{ old('firma', $plantilla->firma) }}"
                        maxlength="255"
                        class="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                              focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent
                               @error('firma') border-red-400 bg-red-50 @enderror">
                 @error('firma')
                     <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
@@ -124,7 +124,7 @@
 
             {{-- Token info --}}
             <div class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-700">
-                Usa <code class="bg-amber-100 px-1 py-0.5 rounded font-mono text-xs">:nombre</code>
+                Usa <code class="bg-amber-100 px-1 py-0.5 rounded-sm font-mono text-xs">:nombre</code>
                 en el asunto o saludo para insertar el nombre del cliente automáticamente.
             </div>
 

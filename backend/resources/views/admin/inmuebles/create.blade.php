@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-2xl border border-gray-200 shadow-sm px-8 py-8 max-w-4xl">
+<div class="bg-white rounded-2xl border border-gray-200 shadow-xs px-8 py-8 max-w-4xl">
     <form method="POST" action="{{ route('admin.inmuebles.store') }}" enctype="multipart/form-data" novalidate>
         @csrf
 
