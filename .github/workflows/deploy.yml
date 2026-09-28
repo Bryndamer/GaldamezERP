@@ -64,19 +64,28 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -t ed25519 -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          sleep 5
 
       - name: Rsync backend → server
         run: |
-          rsync -az --delete \
-            --exclude-from=.rsync-exclude \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }}" \
-            backend/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/
+          for i in 1 2 3 4 5; do
+            rsync -az --delete \
+              --exclude-from=.rsync-exclude \
+              -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} -o ConnectTimeout=30 -o ServerAliveInterval=15" \
+              backend/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/ && break
+            if [ "$i" -eq 5 ]; then
+              echo "rsync falló tras 5 intentos."
+              exit 1
+            fi
+            echo "rsync falló (intento $i), reintentando…"
+            sleep $((i*15))
+          done
 
       # ── Post-deploy ────────────────────────────────────────────────────
       - name: Artisan post-deploy
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} \
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SSH_PORT }} -o ConnectTimeout=30 -o ServerAliveInterval=15 \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -s <<'EOF'
             set -e
             cd "${{ secrets.DEPLOY_PATH }}"
