@@ -7,7 +7,7 @@ Workflow: `.github/workflows/deploy.yml`. Se ejecuta en cada push a `main` (o ma
 1. Instala dependencias PHP de producción (`composer install --no-dev`) en `backend/`.
 2. Compila el frontend React con Vite en `backend/public/spa/` (base `/spa/`).
 3. Sube `backend/` al servidor por **rsync + SSH** (`--delete`, filtros en `.rsync-exclude`).
-4. Por SSH ejecuta: `storage:link`, `migrate --force`, `config/route/view/event:cache` y `queue:restart`.
+4. Por SSH ejecuta: `storage:link`, `migrate --force`, `db:seed --class=ProductionSeeder --force`, `config/route/view/event:cache` y `queue:restart`.
 
 El document root del dominio apunta a `backend/public` (`DEPLOY_PATH/public`).
 Laravel sirve la SPA con la ruta catch-all `spa` (`routes/web.php`); `/admin`, `/agente`,
@@ -54,3 +54,27 @@ El scheduler (`routes/console.php`) ejecuta `queue:work --stop-when-empty` cada 
 
 GitHub → **Actions** → *Deploy to hosting.com* → **Run workflow** (rama `main`).
 Útil tras crear `.env` o para redesplegar sin nuevos commits.
+
+## Operación por SSH
+
+Desde el Mac de desarrollo hay un alias `galdamez` en `~/.ssh/config` (el proyecto vive en `~/app`):
+
+```bash
+ssh galdamez 'cd ~/app && php artisan about'
+ssh galdamez 'cd ~/app && tail -n 50 storage/logs/laravel.log'
+ssh -t galdamez 'cd ~/app && php artisan make:admin'
+ssh galdamez 'cd ~/app && php artisan email:test --to=correo@ejemplo.com'
+ssh galdamez 'cd ~/app && php artisan queue:work --stop-when-empty'
+```
+
+`make:admin` es interactivo (pide la contraseña oculta): usar siempre `ssh -t`.
+
+## Primer arranque en producción
+
+1. Deploy en verde (GitHub Actions).
+2. Crear el administrador: `ssh -t galdamez 'cd ~/app && php artisan make:admin'`.
+3. Verificar SMTP: `php artisan email:test --to=<correo>`.
+4. Probar el login del panel y el formulario de contacto del sitio.
+
+`ProductionSeeder` (categorías base + plantillas de correo) corre en **cada deploy** y es idempotente;
+no crea usuarios. `php artisan demodata` **no** debe usarse en producción (borra todos los datos).

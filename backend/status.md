@@ -484,6 +484,15 @@ php artisan route:list
 
 ---
 
+## Fase 2 — Operación en producción ✅
+
+- `database/seeders/ProductionSeeder.php`: categorías base (Casa, Apartamento, Terreno, Local Comercial) + `PlantillaCorreoSeeder`. Idempotente, sin usuarios.
+- `php artisan make:admin {--name=} {--email=}`: crea el admin real (contraseña oculta, mínimo 10 caracteres).
+- `.github/workflows/deploy.yml`: ejecuta `db:seed --class=ProductionSeeder --force` tras `migrate` en cada deploy.
+- Tests: `MakeAdminCommandTest`, `ProductionSeederTest`. Operación por SSH documentada en `docs/DEPLOY.md`.
+
+---
+
 ## Próximas Fases (Pendientes)
 
 - **Fase 7:** Integración completa React ↔ API ↔ MySQL ↔ Mail (testing E2E)
